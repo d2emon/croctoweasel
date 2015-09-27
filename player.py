@@ -5,7 +5,6 @@ class Player(object):
     """Player class for simple game"""
     __pos = 0
     game = None
-    place = None
 
     def __init__(self, id, game):
         self.id = id
@@ -20,26 +19,31 @@ class Player(object):
 
     @pos.setter
     def pos(self, pos):
-        if pos > self.game.finish:
+        if pos < self.game.start_pos:
+            self.start()
+        elif pos > self.game.finish_pos:
             self.finish()
         else:
             self.__pos = pos
-        if self.__pos < len(self.game.places):
-            self.place = self.game.places[self.__pos]
+
+    @property
+    def place(self):
+        if self.pos < len(self.game.places):
+            return self.game.places[self.pos]
         else:
             logging.error("%s vs %s", self.pos, len(self.game.places))
             from place import Place
-            self.place = Place(self.__pos)
+            return Place(self.__pos)
 
     def start(self):
-        self.pos = 0
+        self.pos = self.game.start_pos
 
     def finish(self):
-        self.__pos = self.game.finish
+        self.__pos = self.game.finish_pos
 
     def isFinished(self):
-        return (self.pos >= self.game.finish)
+        return (self.pos >= self.game.finish_pos)
 
-    def roll(self):
+    def turn(self):
         self.pos += self.game.dice()
         self.place.use(self)

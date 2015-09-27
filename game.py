@@ -3,7 +3,8 @@ import logging
 
 class Game(object):
     """Basic game object"""
-    finish = 120
+    start_pos = 0
+    finish_pos = 120
     places = []
     players = []
     leaders = []
@@ -47,11 +48,11 @@ class Game(object):
         logging.info("Generating field")
         self.places = []
         from place import Place
-        self.places = [Place(i) for i in range(0, self.finish+1)]
+        self.places = [Place(i) for i in range(self.start_pos, self.finish_pos+1)]
 
     def doTurn(self, player):
         logging.info("Doing %s's turn:" % (player.id))
-        player.roll()
+        player.turn()
         if player.pos == 7:
             logging.debug("Double")
             self.doTurn(player)
