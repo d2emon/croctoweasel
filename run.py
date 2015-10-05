@@ -2,42 +2,45 @@
 import logging
 
 
-def print_progress(game):
-    logging.debug("Turn #%s", game.turn)
-    for player in [player for player in game.players if not player.isFinished()]:
-        logging.debug((player.id, player.pos))
-        print("%s. %s" % (player.id, player.pos))
+def show_turn(game):
+    print("Turn #%s" % (game.turn))
 
 
-def print_results(game):
-    logging.info("Finished game")
+def show_progress(game):
+    for player in (player for player in game.players if not player.isFinished()):
+        print("%s. %s" % (player.id, player.place))
+
+
+def show_results(game):
     print("Game results:")
     for id, player in enumerate(game.leaders):
         place = id + 1
-        print("%s. %s" % (place, player.id))
+        print("%s. %s.\n%s" % (place, player.id, player.log))
 
 
 def main():
     from game import Game
     from player import Player
 
-    logging.basicConfig(filename='game.log', level=logging.DEBUG)
     logging.info("------------------------------------------------------------------------")
-
     game = Game()
-    game.players = [Player("Player%s" % (id), game) for id in range(1, 7)]
-
-    logging.debug("Game: %s" % (game))
+    game.players = [Player("Player%s" % (id), game) for id in range(6)]
     logging.debug("Players: %s" % (game.players))
 
     game.start()
-    while True:
-        logging.info("Starting new turn")
+    while not game.isFinished():
+        show_turn(game)
         game.nextTurn()
-        print_progress(game)
-        if game.isFinished():
-            break
-    print_results(game)
+        show_progress(game)
+    show_results(game)
 
 if __name__ == '__main__':
+    import sys
+    args = sys.argv
+    logfile = 'game.log'
+    loglevel = logging.DEBUG
+    logging.basicConfig(
+        filename=logfile,
+        level=loglevel
+    )
     main()
