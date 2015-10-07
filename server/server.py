@@ -3,11 +3,16 @@ import logging
 import errorcodes
 
 
+def getPlayer(game, data):
+    code = data.get("code", "")
+    return game.getPlayer(code)
+
+
 def test(game, data):
     if "text" in data.keys():
         return data["text"]
     else:
-        return errorcodes.errors[2]
+        return errorcodes.ERROR_UNKNOWN
 
 
 def field(game, data):
@@ -16,51 +21,64 @@ def field(game, data):
     return [p.serialize() for p in game.field[field_from:field_to]]
 
 
+def player(game, data):
+    return getPlayer(game, data).serialize()
+
+
 def players(game, data):
     return [p.serialize() for p in game.players]
 
 
-def player(game, data):
-    import player
+def add(game, data):
+    p = game.createPlayer(
+        name = data.get("name", "Player %s" % (len(game.players))),
+    )
+    print([pl.code for pl in game.players])
+    return {"code": p.code}
 
-    p = player.Player("Player%s" % (len(game.players)), game)
-    game.players.append(p)
-    print("New player:", p.serialize)
-    return p.serialize()
+
+def gamestat(game, data):
+    return game.nextTurn().serialize()
 
 
 def start(game, data):
-    # game.start()
-    # while not game.isFinished():
-    #    show_turn(game)
-    #    game.nextTurn()
-    #    show_progress(game)
-    # show_results(game)
-    pass
+    return gamestat(game.start(), data)
+
+
+def turn(game, data):
+    import player
+
+    p = getPlayer(game, data)
+    p.state = player.STATE_NEXT
+    return gamestat(game, data)
 
 
 actions = {
     "test": test,
     "field": field,
-    "players": players,
+    "add": add,
     "player": player,
-    "start": start
+    "players": players,
+    "game": gamestat,
+    "start": start,
+    "turn": turn
 }
 
 
 def doAction(game, action, data):
     if action in actions.keys():
-        return actions[action](game, data)
+        responce = actions[action](game, data)
     else:
-        return errorcodes.errors[1]
+        responce = errorcodes.ERROR_ACTION
+
+    logging.debug(responce)
+    return responce
 
 
 def main(port):
     import socket
     import json
     import game
-
-    # from player import Player
 
     sock = socket.socket()
     logging.info("Binidng socket to port %s", port)
@@ -83,14 +101,22 @@ def main(port):
                 try:
                     request = json.loads(data.decode("UTF-8"))
                     logging.debug(request)
-                    responce = doAction(g, request.get("action", "error"), request)
-                    logging.debug(responce)
-                    conn.send(json.dumps(responce).encode("UTF-8"))
                 except Exception as e:
                     logging.error(e)
-                    conn.send(errorcodes.jsoned(1))
+                    conn.send(json.dumps(errorcodes.ERROR_UNKNOWN).encode("UTF-8"))
                     print(e)
                     break
+
+                try:
+                    responce = doAction(g, request.get("action", "error"), request)
+                    conn.send(json.dumps(responce).encode("UTF-8"))
+                except errorcodes.WrongCodeError as e:
+                    logging.error(e)
+                    conn.send(json.dumps(errorcodes.ERROR_CODE).encode("UTF-8"))
+                    print(data)
+                    print(e)
+                    break
+
             conn.close()
         except (KeyboardInterrupt, SystemExit):
             break
