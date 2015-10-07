@@ -6,19 +6,17 @@ class Game(object):
     start_pos = 0
     finish_pos = 120
 
-    places = []
+    field = []
     players = []
     leaders = []
     turn = 0
 
     def __init__(self):
         import field
-        import place
 
         self.turn = 0
         self.leaders = []
-        self.places = field.getField(self.start_pos, self.finish_pos+1)
-        # [place.getPlace(i, **field.place_data[i]) for i in range(self.start_pos, self.finish_pos+1)]
+        self.field = field.getField(self.start_pos, self.finish_pos+1)
 
     def start(self):
         logging.info("Starting game")

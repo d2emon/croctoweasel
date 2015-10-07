@@ -7,17 +7,20 @@ class Place:
     def __init__(self, id, name, **params):
         self.id = id
         self.name = name
+        self.description = ""
 
     def __repr__(self):
-        return "%s.\t%s\n\t%s" % (self.id, self.name,self.description)
+        return "%s.\t%s\n\t%s" % (self.id, self.name, self.description)
+
+    def serialize(self):
+        return {"id": self.id, "name": self.name, "description": self.description}
 
     def use(self, player):
         print(player)
 
 
 class DoubleTurn(Place):
-    def __repr__(self):
-        return "%s.\n\tDouble turn.\n" % (self.id)
+    description = "Double turn"
 
     def use(self, player):
         Place.use(self, player)
@@ -33,9 +36,7 @@ class Moving(Place):
     def __init__(self, **params):
         Place.__init__(self, **params)
         self.move_to = params['move_to']
-
-    def __repr__(self):
-        return "%s.\n\tMoving to %d.\n" % (self.id, self.move_to)
+        self.description = "Moving to %d" % (self.move_to)
 
     def use(self, player):
         Place.use(self, player)
@@ -46,8 +47,7 @@ class Moving(Place):
 
 
 class Restart(Place):
-    def __repr__(self):
-        return "%s.\n\tRestart game.\n\n" % (self.id)
+    description = "Restart game"
 
     def use(self, player):
         Place.use(self, player)

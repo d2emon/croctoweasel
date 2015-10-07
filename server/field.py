@@ -140,5 +140,5 @@ def getField(start, finish):
 
 if __name__ == "__main__":
     field = getField(0, 120)
-    for place in field:
-        print(place)
+    for p in field:
+        print(p)

@@ -17,6 +17,9 @@ class Player(object):
         else:
             return "%s is at %s." % (self.id, self.place)
 
+    def serialize(self):
+        return {"id": self.id, "pos": self.pos, "log": [l.serialize() for l in self.log]}
+
     @property
     def pos(self):
         return self.__pos
@@ -32,10 +35,10 @@ class Player(object):
 
     @property
     def place(self):
-        if self.pos < len(self.game.places):
-            return self.game.places[self.pos]
+        if self.pos < len(self.game.field):
+            return self.game.field[self.pos]
         else:
-            logging.error("%s vs %s", self.pos, len(self.game.places))
+            logging.error("%s vs %s", self.pos, len(self.game.field))
             from place import Place
             return Place(id=self.__pos, name='Error')
 
