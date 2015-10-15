@@ -2,6 +2,10 @@
 import logging
 
 
+sock = None
+code = 0
+
+
 class SocketSender:
     sock = None
 
@@ -20,8 +24,7 @@ class SocketSender:
     def send(self, data):
         import json
 
-        print("Sending")
-        print(data)
+        logging.info(data)
         self.sock.send(json.dumps(data).encode('UTF-8'))
 
     def recv(self, size):
@@ -40,13 +43,67 @@ class SocketSender:
         return responce
 
 
-def stats(sock, code):
+def showField(field):
+    for l in field:
+        showLoc(l)
+
+
+def showLoc(loc):
+    print("%d.\t%s\n\t%s" % (loc["id"], loc["name"], loc["description"]))
+
+
+def showGame(game):
+    if game.get("errcode", 0) > 0:
+        print(game)
+        return True
+
+    states = (
+        "Ready to start",
+        "Waiting for players",
+        "Doing next turn",
+        "Finished"
+    )
+    print("Turn #%d.\t%s" % (game["turn"], states[game["state"]]))
+    for p in game["players"]:
+        showPlayer(p)
+
+
+def showPlayer(player):
+    if player.get("errcode", 0) > 0:
+        print(player)
+        return True
+
+    states = (
+        "Ready to start",
+        "Doing next turn",
+        "Waiting for other players",
+        "Finished"
+    )
+    print("%s.\t%s" % (player["name"], states[player["state"]]))
+    showLoc(player["loc"])
+
+
+def stats():
+    global sock, code
+
     print('----')
-    print(sock.sendrecv({"action": "game"}, 8192))
-    print(sock.sendrecv({"action": "player", "code": code}, 8192))
+    showGame(sock.sendrecv({"action": "game"}, 8192))
+    print('----')
+    showPlayer(sock.sendrecv({"action": "player", "code": code}, 8192))
+
+
+def next():
+    global sock, code
+
+    sock.sendrecv({"action": "turn", "code": code}, 8192)
+    stats()
 
 
 def main(connect):
+    import msvcrt
+
+    global sock, code
+
     sock = SocketSender(
         host = connect[0],
         port = connect[1]
@@ -61,9 +118,8 @@ def main(connect):
         last_field = 120
 
     locations = sock.sendrecv({"action": "field", "from": first_field, "to": last_field}, 8192)
-    for l in locations:
-        print("%d.\t%s\n\t%s" % (l["id"], l["name"], l["description"]))
-    stats(sock, 0)
+    showField(locations)
+    stats()
 
     userName = raw_input("Enter your name:")
     code = sock.sendrecv({"action": "add", "name": userName}, 8192)["code"]
@@ -71,21 +127,18 @@ def main(connect):
 
     data = sock.sendrecv({"action": "start"}, 8192)
     print(data)
-    stats(sock, code)
+    stats()
 
-    turn = "y"
-    while turn == "y":
-        data = sock.sendrecv({"action": "turn", "code": code}, 8192)
-        print(data)
-        stats(sock, code)
-        turn = raw_input("Next turn?")
+    while True:
+        msvcrt.getch()
+        next()
 
 
 if __name__ == '__main__':
     import sys
     args = sys.argv
     print(args)
-    logfile = 'server.log'
+    logfile = 'client.log'
     loglevel = logging.DEBUG
     server = 'localhost'
     port = 9090

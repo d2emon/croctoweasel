@@ -28,7 +28,8 @@ class Player(object):
             return "%s is at %s." % (self.name, self.place)
 
     def serialize(self):
-        return {"name": self.name, "state": self.state, "pos": self.pos, "log": [l.serialize() for l in self.log]}
+        return {"name": self.name, "state": self.state, "loc":  self.place.serialize()}
+        # "log": [l.serialize() for l in self.log]}
 
     @property
     def pos(self):

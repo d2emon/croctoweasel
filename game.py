@@ -65,8 +65,8 @@ class Game(object):
         if self.state not in ((STATE_PLAY, STATE_NEXT)):
             return self
 
-        turners = [p for p in self.players if p.state == player.STATE_NEXT]
-        if len(turners) > 0:
+        turners = [p for p in self.players if p.state in (player.STATE_NEXT, player.STATE_FINISH)]
+        if len(turners) == len(self.players):
             self.state = STATE_NEXT
         else:
             return self
@@ -80,6 +80,8 @@ class Game(object):
 
         if len(self.leaders) >= len(self.players):
             self.state = STATE_FINISH
+        else:
+            self.state = STATE_PLAY
 
         return self
 

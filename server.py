@@ -1,10 +1,13 @@
 #! /usr/bin/python
 import logging
 import errorcodes
+import datetime
 
 
-def getPlayer(game, data):
-    code = data.get("code", "")
+clients = {}
+
+
+def getPlayer(game, code):
     return game.getPlayer(code)
 
 
@@ -18,11 +21,11 @@ def test(game, data):
 def field(game, data):
     field_from = data.get("from", 0)
     field_to = data.get("to", 120)
-    return [p.serialize() for p in game.field[field_from:field_to]]
+    return [p.serialize() for p in game.field[field_from:field_to + 1]]
 
 
 def player(game, data):
-    return getPlayer(game, data).serialize()
+    return getPlayer(game, data.get("code", 0)).serialize()
 
 
 def players(game, data):
@@ -30,9 +33,13 @@ def players(game, data):
 
 
 def add(game, data):
+    global clients
+
     p = game.createPlayer(
         name = data.get("name", "Player %s" % (len(game.players))),
     )
+    clients[p.code] = datetime.datetime.now()
+    print(clients)
     print([pl.code for pl in game.players])
     return {"code": p.code}
 
@@ -48,8 +55,15 @@ def start(game, data):
 def turn(game, data):
     import player
 
-    p = getPlayer(game, data)
-    p.state = player.STATE_NEXT
+    global clients
+    print("CLIENTS")
+    afk = [u for u, t in clients.iteritems() if (t - datetime.datetime.now()) < datetime.timedelta(minutes=1)]
+    afk.append(data.get("code", 0))
+
+    for c in afk:
+        p = getPlayer(game, c)
+        p.state = player.STATE_NEXT
+
     return gamestat(game, data)
 
 
