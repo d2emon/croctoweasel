@@ -92,7 +92,7 @@ def doAction(game, action, data):
 def main(port):
     import socket
     import json
-    import game
+    from src import game
 
     sock = socket.socket()
     logging.info("Binidng socket to port %s", port)

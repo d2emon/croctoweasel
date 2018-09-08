@@ -71,8 +71,8 @@ place_data = {
     69: {'type': 0, 'name': ''},
     70: {'type': 2, 'name': '', 'move_to': 80},
     71: {'type': 2, 'name': '', 'move_to': 62},
-    70: {'type': 0, 'name': ''},
-    71: {'type': 0, 'name': ''},
+    # 70: {'type': 0, 'name': ''},
+    # 71: {'type': 0, 'name': ''},
     72: {'type': 0, 'name': ''},
     73: {'type': 0, 'name': ''},
     74: {'type': 0, 'name': ''},
@@ -123,22 +123,3 @@ place_data = {
     119: {'type': 0, 'name': ''},
     120: {'type': 0, 'name': ''},
 }
-
-
-import place
-
-types = (place.Place, place.DoubleTurn, place.Moving, place.Restart)
-
-
-def getPlace(id, **params):
-    return types[params['type']](id=id, **params)
-
-
-def getField(start, finish):
-    return [getPlace(id, **place_data[id]) for id in range(start, finish)]
-
-
-if __name__ == "__main__":
-    field = getField(0, 120)
-    for p in field:
-        print(p)

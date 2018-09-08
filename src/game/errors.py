@@ -11,4 +11,4 @@ ERRORS = (
 )
 
 class WrongCodeError(Exception):
-    '''raise this when there is no such user'''
+    """raise this when there is no such user"""
